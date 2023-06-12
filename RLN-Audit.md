@@ -13,15 +13,24 @@
 ## Table of Contents <!-- omit in toc -->
 
 [Executive Summary](#executive-summary)
-[Scope](#scope)
-[Explanation of Findings](#explanation-of-findings)
-[Critical Findings](#critical-findings)
-[High Findings](#high-findings)
-[Medium Findings](#medium-findings)
-[Low Findings](#low-findings)
-[Final Remarks](#final-remarks)
+
+[Scope](#scope) 
+
+[Explanation of Findings](#explanation-of-findings) 
+
+[Critical Findings](#critical-findings) 
+
+[High Findings](#high-findings) 
+
+[Medium Findings](#medium-findings) 
+
+[Low Findings](#low-findings) 
+
+[Final Remarks](#final-remarks) 
 
 ## Executive Summary
+- There are no critical or high impact bugs in the code.
+- There were some low impact bugs mainly under constrained input variables between the Circom circuits and their corresponding Solidity contracts. 
 
 **Rate Limiting Nullifier**
 
@@ -41,6 +50,25 @@ The RLN V2 protocol is a more general construct, that allows to set various limi
 The RLN Circom circuits were reviewed over 13 days. The code review was performed between May 31 and June 12, 2023. The RLN repository was under active development during the review, but the review was limited to the latest commit, [37073131b9](https://github.com/Rate-Limiting-Nullifier/circom-rln/tree/37073131b9c5910228ad6bdf0fc50080e507166a) at the start of the review. 
 
 The official documentation for the RLN circuits was located at [rate-limiting-nullifier.github.io](https://rate-limiting-nullifier.github.io/rln-docs/).
+
+**Flow**
+
+```mermaid
+graph TD
+    ext_null>External Nullifier] --> h1(hash)
+    secret{{Secret Trapdoor & nullifier}} --> h0(hash) --> a_0
+    a_0{{Secret hashed a_0}} --> h1
+    msg_id>Message_ID `k`] --> h1
+    msg_id --> limit_check(Message Limit Check)
+    msg_limit>Message Limit] --> limit_check
+    h1 --> a_1 --> h2(hash) --> int_null([Internal Nullifier])
+    a_1 --> times
+    m>Message] --> h3(hash) --> times(*) --> plus(+)
+    a_0 --> plus --> sss([Shamir's Share y_share])
+    a_0 --> h4(hash) --> id_com([id_commitment])
+    h4 --> merkle(MerkleProof)
+```
+
 
 ## Scope
 
