@@ -12,35 +12,49 @@
 
 ## Table of Contents <!-- omit in toc -->
 
-Executive Summary
-Scope
-Explanation of Findings
-Critical Findings
-High Findings
-Medium Findings
-Low Findings
-Final Remarks
+[Executive Summary](#executive-summary)
+[Scope](#scope)
+[Explanation of Findings](#explanation-of-findings)
+[Critical Findings](#critical-findings)
+[High Findings](#high-findings)
+[Medium Findings](#medium-findings)
+[Low Findings](#low-findings)
+[Final Remarks](#final-remarks)
 
-## Review Summary
+## Executive Summary
 
-**TODO_protocol_name**
+**Rate Limiting Nullifier**
 
-TODO_protocol_name provides TODO_explain_protocol_purpose.
+Rate limiting nullifier (RLN) is a construct based on zero-knowledge proofs (sometimes called ZKP gadget) that provides an anonymous rate-limited signaling/messaging framework suitable for decentralized (and centralized) environments using Secret Shamir Sharing (SSS) scheme.
 
-The contracts of the TODO_protocol_name [Repo](TODO_github_URL) were reviewed over TODO_days_total days. The code review was performed by TODO_number_of_auditors auditors between TODO_start_date and TODO_finish_date, 2023. The repository was under active development during the review, but the review was limited to the latest commit at the start of the review. This was commit [TODO_hash](TODO_github_URL_to_hash) for the TODO_protocol_name repo.
+**Motivation**
+Some applications of rate limiting nullifier in anonymous decentralized networks include:
+1. Decentralized voting applications: RLN helps prevent voting outcomes from being manipulated by spam or sybil attacks, ensuring the integrity of the voting process. 
+2. Anonymous group chat applications: By preventing users from spamming or polluting group chats, RLN enhances the user experience in these applications.
+3. Direct anonymous attestation: RLN can be used in combination with Direct Anonymous Attestation (DAA) to implement service rate-limiting in a scenario where messages between users and the service are sent anonymously while preserving message unlinkability
+4. Blockchain-based social networks: RLN can be applied to decentralized social media networks to prevent spam, sybil attacks, and other types of abuse targeting APIs and applications, thus enhancing the overall security and reliability of these networks.
+5. Rate limiting in web applications: RLN can be integrated with Web Application Firewalls (WAF) to protect against denial-of-service attacks, brute-force login attempts, and API traffic surges, providing a more secure and reliable web application experience. 
+
+**RLN V2**
+The RLN V2 protocol is a more general construct, that allows to set various limits for an epoch (it’s 1 message per epoch in RLN-V1) while remaining almost as simple as it predecessor. Moreover, it allows to set different rate-limits for different RLN app users based on some public data, e.g. stake.
+
+The RLN Circom circuits were reviewed over 13 days. The code review was performed between May 31 and June 12, 2023. The RLN repository was under active development during the review, but the review was limited to the latest commit, [37073131b9](https://github.com/Rate-Limiting-Nullifier/circom-rln/tree/37073131b9c5910228ad6bdf0fc50080e507166a) at the start of the review. 
+
+The official documentation for the RLN circuits was located at [rate-limiting-nullifier.github.io](https://rate-limiting-nullifier.github.io/rln-docs/).
 
 ## Scope
 
-The scope of the review consisted of the following contracts at the specific commit:
+The scope of the review consisted of the following circuits at the specific commit:
 
-- TODO1.sol
-- TODO2.sol
+- [rln.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/rln.circom)
+- [utils.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/utils.circom)
+- [withdraw.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/withdraw.circom)
 
-After the findings were presented to the TODO_protocol_name team, fixes were made and included in several PRs.
+After the findings were presented to the RLN team, fixes were made and included in several PRs.
 
 This review is a code review to identify potential vulnerabilities in the code. The reviewers did not investigate security practices or operational security and assumed that privileged accounts could be trusted. The reviewers did not evaluate the security of the code relative to a standard or specification. The review may not have identified all potential attack vectors or areas of vulnerability.
 
-yAcademy and the auditors make no warranties regarding the security of the code and do not warrant that the code is free from defects. yAcademy and the auditors do not represent nor imply to third parties that the code has been audited nor that the code is free from defects. By deploying or using the code, TODO_protocol_name and users of the contracts agree to use the code at their own risk.
+yAcademy and the auditors make no warranties regarding the security of the code and do not warrant that the code is free from defects. yAcademy and the auditors do not represent nor imply to third parties that the code has been audited nor that the code is free from defects. By deploying or using the code, RLN and users of the contracts agree to use the code at their own risk.
 
 
 Code Evaluation Matrix
@@ -58,7 +72,7 @@ Code Evaluation Matrix
 | Monitoring               | Average | TODO |
 | Testing and verification | Average | TODO  |
 
-## Findings Explanation
+## Explanation of Findings
 
 Findings are broken down into sections by their respective impact:
  - Critical, High, Medium, Low impact
@@ -84,82 +98,46 @@ None.
 
 ## Low Findings
 
-### 1. Low - TODO_Title
+### 1. Low - Incosistency between RLN contract and RLN circuit on the number of bits for userMessageLimit
 
-TODO
+In RLN.sol, the messageLimit can take upto 2**256 - 1 values whereas messageId & userMessageLimit values in circuits is restricted to 2**16 - 1 .
 
-#### Technical Details
+[rln.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/rln.circom)
 
-TODO
+```circom
+template RLN(DEPTH, LIMIT_BIT_SIZE) {
+...
+    // messageId range check
+    RangeCheck(LIMIT_BIT_SIZE)(messageId, userMessageLimit);
+...
+}
+component main { public [x, externalNullifier] } = RLN(20, 16);
+```
 
-#### Impact
+[rln.sol](https://github.com/Rate-Limiting-Nullifier/rln-contracts/blob/main/src/RLN.sol)
+```solidity
+uint256 messageLimit = amount / MINIMAL_DEPOSIT;
+```
 
-Low. TODO_reasoning.
+**Recommended Solution**
 
-#### Recommendation
+Update the relevant code at [rln.sol](https://github.com/Rate-Limiting-Nullifier/rln-contracts/blob/main/src/RLN.sol) with something like below:
 
-TODO
-
-#### Developer Response
+```solidity
+function register(uint256 identityCommitment, uint256 amount) external {
+        ...
+        uint256 messageLimit = amount / MINIMAL_DEPOSIT;
+        require( messageLimit <= type(uint16).max , "Max length of your message limit is 65535");
+        ...
+    }
+```
 
 
 
 ### 2. Low - TODO_Title
 
-TODO
 
-#### Technical Details
-
-TODO
-
-#### Impact
-
-Low. TODO_reasoning.
-
-#### Recommendation
-
-TODO
-
-#### Developer Response
-
-
-
-## Gas Savings Findings
-
-### 1. Gas - TODO_Title
-
-TODO
-
-#### Technical Details
-
-TODO
-
-#### Impact
-
-Gas savings.
-
-#### Recommendation
-
-TODO
-
-## Informational Findings
-
-### 1. Informational - TODO_Title
-
-TODO
-
-#### Technical Details
-
-TODO
-
-#### Impact
-
-Informational.
-
-#### Recommendation
-
-TODO
 
 ## Final remarks
 
-TODO
+
