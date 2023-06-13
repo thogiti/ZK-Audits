@@ -162,8 +162,19 @@ function register(uint256 identityCommitment, uint256 amount) external {
 
 
 
-### 2. Low - TODO_Title
+### 2. Low - Unused `address` input signal in the Withdraw circuit
 
+The input signal `address` was declared but not used in the output calculation. 
+
+```circom
+    signal input address;
+```
+**Recommended Solution**
+Assign a local computation for the unused input signal `address`. For example:
+
+```circom
+   signal addressDoubled <== address + address;
+```
 
 
 ## Final remarks
