@@ -212,6 +212,9 @@ assert(address.length == EXPECTED_ADDRESS_LENGTH, "Invalid address length"); // 
 // Add error handling for length check
 assert(leaf.length == EXPECTED_LEAF_LENGTH, "Invalid leaf length"); // Throw an error if the leaf length is not as expected
 ```
+### POSEIDON and Some Additional Remarks
+The RLN circuit assumes that the underlying hash function (Poseidon) is collision-resistant and resistant to any differential cryptanalysis, algebraic cryptanalysis, and interpolation attacks and behaves as a random oracle. It also assumes that the Merkle tree used for membership proof is secure against second-preimage attacks. The security of the circuit also depends on the security of the cryptographic primitives used for range checks and SSS share calculations. Additionally, the security of the circuit depends on the secrecy of the "identitySecret" signal, which is assumed to be kept secret by the user (social engineering attacks are still valid way to break the system). An attacker can obtain the "identitySecret" signal of a user by using various methods such as social engineering, phishing attacks, or exploiting vulnerabilities in the user's system. Once the attacker has obtained the "identitySecret" signal, they can calculate the "identityCommitment", "rateCommitment", "a1", and "y" signals for that user, and use them to break the security of the RLN circuit.
+ 
 
 ## Final remarks
 Overall, the code demonstrates good implementation of mathematical operations and basic functionality. However, it could benefit from more extensive documentation and additional testing and verification procedures.
