@@ -176,6 +176,14 @@ Assign a local computation for the unused input signal `address`. For example:
 ```circom
    signal addressDoubled <== address + address;
 ```
+
+### 3. Low - Missing rangechecks for the data inputs
+
+The Circom circuits are missing explicit rangechecks for several input parameters suchh as `DEPTH`, `address`, `LIMIT_BIT_SIZE`, etc. 
+
+**Recommended Solution**
+Perform explcit range checks and constrain the data input parameters to improve the soundness of the ZKP system.
+
 ## Informational Findings
 The Circom circuits are further tested for `Weak Verification` soundness property using Ecne tool from 0xParc. This tests if, given the input variables in a QAP (R1CS constraints), the output variables have uniquely determined values. An underconstrained circuit admits valid proofs for multiple different outputs, given the same input. In the worst case, an attacker can generate a valid proof for an underconstrained circuit for any output--meaning that an attacker would be able to convince a verifier who (incorrectly) believes the circuit to be properly-constrained that the attacker knows the pre-image of arbitrary outputs.
 
