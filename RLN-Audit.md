@@ -90,15 +90,15 @@ Code Evaluation Matrix
 
 | Category                 | Mark    | Description |
 | ------------------------ | ------- | ----------- |
-| Access Control           | Good | TODO |
-| Mathematics              | Good | TODO |
-| Complexity               | Good | TODO |
-| Libraries                | Average | TODO |
-| Decentralization         | Good | TODO |
-| Code stability           | Good    | TODO |
-| Documentation            | Low | TODO |
-| Monitoring               | Average | TODO |
-| Testing and verification | Average | TODO  |
+| Access Control           | Not applicable | The code does not explicitly implement access control mechanisms. It does not have specific checks or restrictions on who can access or modify the data. |
+| Mathematics              | Good | The code includes mathematical operations such as addition, multiplication, and hashing using the Poseidon function. It also includes range checks and bit manipulation operations.  |
+| Complexity               | Good | The complexity of the code is relatively low. It consists of basic mathematical operations and includes a Merkle tree inclusion proof and range checks. |
+| Libraries                | Average | The code includes the Circomlib library, specifically the Poseidon circuit, which is used for hashing. |
+| Decentralization         | Not applicable | The code does not explicitly address decentralization. It does not include mechanisms for distributed consensus or interaction with a decentralized network.  |
+| Code stability           | Good    | The code appears to be well-structured and follows the Circom syntax. It does not contain any obvious errors or issues that would affect its stability. |
+| Documentation            | Low | The code does not include extensive documentation. There are some comments explaining the purpose of certain components, but more detailed documentation would be beneficial.  |
+| Monitoring               | Average | The code does not include specific monitoring mechanisms. It does not have built-in logging or tracking of events or performance metrics. |
+| Testing and verification | Average | The code includes some basic range checks and a Merkle tree inclusion proof, which are important for ensuring the correctness of the code. However, it does not include comprehensive testing or verification procedures.  |
 
 ## Explanation of Findings
 
@@ -175,8 +175,35 @@ Assign a local computation for the unused input signal `address`. For example:
 ```circom
    signal addressDoubled <== address + address;
 ```
+## Informational Findings
+The Circom circuits are further tested for `Weak Verification` soundness property using Ecne tool from 0xParc. This tests if, given the input variables in a QAP (R1CS constraints), the output variables have uniquely determined values. An underconstrained circuit admits valid proofs for multiple different outputs, given the same input. In the worst case, an attacker can generate a valid proof for an underconstrained circuit for any output--meaning that an attacker would be able to convince a verifier who (incorrectly) believes the circuit to be properly-constrained that the attacker knows the pre-image of arbitrary outputs.
 
+### Ecne Findings
+The Circom cuits were compiled to non-optimized R1CS constraints system and then they were tested for `Weak Verification` to check for any bad constraints or underconstraints. All the circuits passed the Ecne tests without any bad or underconstraints. This verifies that R1CS equations of the given circuits uniquely determine outputs given inputs (i.e. that the constraints are sound).
+
+### Error Handling
+Consider adding below error handling to check for specific conditions and throw an error or return an error code when those conditions are not met. This helps provide meaningful error messages or handle exceptional cases in a controlled manner.
+
+**`rln.circom`**
+```circom
+// Add error handling for Merkle tree inclusion proof
+root <== MerkleTreeInclusionProof(DEPTH)(rateCommitment, identityPathIndex, pathElements);
+assert(root !== 0, "Invalid Merkle tree inclusion proof"); // Throw an error if the Merkle tree inclusion proof is invalid
+
+```
+**`withdraw.circom`**
+```circom
+// Add error handling for address length check
+assert(address.length == EXPECTED_ADDRESS_LENGTH, "Invalid address length"); // Throw an error if the address length is not as expected
+
+```
+**`utils.circom`**
+```circom
+
+// Add error handling for length check
+assert(leaf.length == EXPECTED_LEAF_LENGTH, "Invalid leaf length"); // Throw an error if the leaf length is not as expected
+```
 
 ## Final remarks
-
+Overall, the code demonstrates good implementation of mathematical operations and basic functionality. However, it could benefit from more extensive documentation and additional testing and verification procedures.
 
