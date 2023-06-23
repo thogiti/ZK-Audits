@@ -7,6 +7,7 @@ Spartan-ecdsa is known to be the fastest open-source method to verify ECDSA (sec
 - The code repository at [github.com/personaelabs](https://github.com/personaelabs/spartan-ecdsa)
 - The PersonaeLabs spartan-ecdsa blog post at [personaelabs.org](https://personaelabs.org/posts/spartan-ecdsa/)
 - The PersonaeLabs spartan-ecdsa blog post at [personaelabs.org](https://personaelabs.org/posts/efficient-ecdsa-1/)
+- The overview document [hackmd.io](https://hackmd.io/68TlQZFvQOeMZ2mvFl0Abg?view)
 
 **Auditors:**
 
