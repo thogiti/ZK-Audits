@@ -33,55 +33,75 @@ Spartan-ecdsa is known to be the fastest open-source method to verify ECDSA (sec
 
 ## Executive Summary
 - There are no critical or high impact bugs in the code.
-- There were some low impact bugs mainly under constrained input variables between the Circom circuits and their corresponding Solidity contracts. 
+- There were some low impact bugs mainly under constrained input variables between the Circom circuits.
 
 **Spartan ECDSA**
 
-Spartan-ecdsa is known to be the fastest open-source method to verify ECDSA (secp256k1) signatures in zero-knowledge.
+[Spartan-ecdsa](https://github.com/personaelabs/spartan-ecdsa) is an open-source implementation for verifying ECDSA (secp256k1) signatures in zero-knowledge. It is significantly faster than previous implementations, such as efficient-zk-ecdsa, and can prove ECDSA group membership 10 times faster.
+
+The major improvement in Spartan-ecdsa comes from the optimization of constraint breakdown. By using right-field arithmetic with secq and avoiding SNARK-unfriendly range checks and big integer math, Spartan-ecdsa reduces the number of constraints from 1.5 million in circom-ecdsa to 3,039 for efficient ECDSA signature verification. Furthermore, it uses efficient ECDSA signatures instead of standard ECDSA signatures, saving an additional 14,505 constraints.
+
+Efficient ECDSA signatures consist of $s$, $T = r^{-1} * R$, and $U = -r^{-1} * m * G$, which can be computed outside of the SNARK without breaking correctness. Thus, verifying an efficient ECDSA signature requires fewer computations than a standard ECDSA signature, resulting in performance improvements.
+
+The standard ECDSA signature consists of $(r, s)$ for a public key $Q_a$ and message $m$, where $r$ is the x-coordinate of a random elliptic curve point $R$. Standard ECDSA signature verification checks if
+
+```math
+R == m s ^{-1} * G + r s ^{-1} * Q_a
+```
+
+where $G$ is the generator point of the curve. 
+
+
+**Benchmarks**
+
+Proving membership to a group of ECDSA public keys:
+
+|          Benchmark           |   #   |
+| :--------------------------: | :---: |
+|         Constraints          | 8,076 |
+|   Proving time in browser    |  4s   |
+|   Proving time in Node.js    |  2s   |
+| Verification time in browser |  1s   |
+| Verification time in Node.js | 300ms |
+|          Proof size          | 16kb  |
+
+- Measured on a M1 MacBook Pro with 80Mbps internet speed.
+- Both proving and verification time in browser includes the time to download the circuit.
+
+Please note that the performance benchmarks mentioned in the repository include the time to download the circuit in both proving and verification times in the browser.
+
+To use Spartan-ecdsa, you can install it using `yarn add @personaelabs/spartan-ecdsa`. To build the project, follow the instructions provided in the repository's [README](https://github.com/personaelabs/spartan-ecdsa).
 
 **Motivation**
-Some applications of rate limiting nullifier in anonymous decentralized networks include:
+Some applications of Spartan-Ecdsa in anonymous decentralized networks include:
 1. Decentralized voting applications: RLN helps prevent voting outcomes from being manipulated by spam or sybil attacks, ensuring the integrity of the voting process. 
 2. Anonymous group chat applications: By preventing users from spamming or polluting group chats, RLN enhances the user experience in these applications.
 3. Direct anonymous attestation: RLN can be used in combination with Direct Anonymous Attestation (DAA) to implement service rate-limiting in a scenario where messages between users and the service are sent anonymously while preserving message unlinkability
 4. Blockchain-based social networks: RLN can be applied to decentralized social media networks to prevent spam, sybil attacks, and other types of abuse targeting APIs and applications, thus enhancing the overall security and reliability of these networks.
 5. Rate limiting in web applications: RLN can be integrated with Web Application Firewalls (WAF) to protect against denial-of-service attacks, brute-force login attempts, and API traffic surges, providing a more secure and reliable web application experience. 
 
-**RLN V2**
-The RLN V2 protocol is a more general construct, that allows to set various limits for an epoch (it’s 1 message per epoch in RLN-V1) while remaining almost as simple as it predecessor. Moreover, it allows to set different rate-limits for different RLN app users based on some public data, e.g. stake.
 
-The RLN Circom circuits were reviewed over 13 days. The code review was performed between May 31 and June 12, 2023. The RLN repository was under active development during the review, but the review was limited to the latest commit, [37073131b9](https://github.com/Rate-Limiting-Nullifier/circom-rln/tree/37073131b9c5910228ad6bdf0fc50080e507166a) at the start of the review. 
+The Spartan ECDSA Circom circuits were reviewed over 10 days. The code review was performed between June 17 and June 26, 2023. The Spartan ECDSA repository was under active development during the review, but the review was limited to the latest commit, [3386b30](https://github.com/personaelabs/spartan-ecdsa/commit/3386b30d9b5b62d8a60735cbeab42bfe42e80429) at the start of the review. 
 
-The official documentation for the RLN circuits was located at [rate-limiting-nullifier.github.io](https://rate-limiting-nullifier.github.io/rln-docs/).
+The official documentation for the Spartan ECDSA circuits was located at [personaelabs.org](https://personaelabs.org/posts/spartan-ecdsa/).
 
 **Flow**
 
-```mermaid
-graph TD
-    ext_null>External Nullifier] --> h1(hash)
-    secret{{Secret Trapdoor & nullifier}} --> h0(hash) --> a_0
-    a_0{{Secret hashed a_0}} --> h1
-    msg_id>Message_ID `k`] --> h1
-    msg_id --> limit_check(Message Limit Check)
-    msg_limit>Message Limit] --> limit_check
-    h1 --> a_1 --> h2(hash) --> int_null([Internal Nullifier])
-    a_1 --> times
-    m>Message] --> h3(hash) --> times(*) --> plus(+)
-    a_0 --> plus --> sss([Shamir's Share y_share])
-    a_0 --> h4(hash) --> id_com([id_commitment])
-    h4 --> merkle(MerkleProof)
-```
 
 
 ## Scope
 
 The scope of the review consisted of the following circuits at the specific commit:
 
-- [rln.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/rln.circom)
-- [utils.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/utils.circom)
-- [withdraw.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/withdraw.circom)
+- [posedion.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/poseidon/poseidon.circom)
+- [eff_ecdsa.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/eff_ecdsa.circom)
+- [pubkey_membership.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/pubkey_membership.circom)
+- [tree.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/tree.circom)
+- [add.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom)
+- [mul.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom)
+- [double.circom](https://github.com/personaelabs/spartan-ecdsa/blob/3386b30d9b5b62d8a60735cbeab42bfe42e80429/packages/circuits/eff_ecdsa_membership/secp256k1/double.circom)
 
-After the findings were presented to the RLN team, fixes were made and included in several PRs.
+After the findings were presented to the PersonaeLabs team, fixes were made and included in several PRs.
 
 This review is a code review to identify potential vulnerabilities in the code. The reviewers did not investigate security practices or operational security and assumed that privileged accounts could be trusted. The reviewers did not evaluate the security of the code relative to a standard or specification. The review may not have identified all potential attack vectors or areas of vulnerability.
 
@@ -162,8 +182,6 @@ function register(uint256 identityCommitment, uint256 amount) external {
         ...
     }
 ```
-
-
 
 ### 2. Low - Unused `bits` variable in the eff_ecdsa circuit
 
