@@ -34,11 +34,14 @@ Spartan-ecdsa is known to be the fastest open-source method to verify ECDSA (sec
 
 ## Executive Summary
 - There are no critical or high impact bugs in the code.
-- There were some low impact bugs mainly under constrained input variables between the Circom circuits.
+- There were some informational items, mainly under constrained input variables between the Circom circuits.
+- The goal of Spartan-ECDSA was to create a fast and secure ECDSA implementation with minimal constraints. To achieve this, the Circom circuits used in Spartan-ECDSA had to be carefully checked for inputs and outputs on the client side. The team behind Spartan-ECDSA advised clients to use their typescript functions instead of the Circom circuits, unless the inputs and outputs were fully verified.
 
 **Spartan ECDSA**
 
 [Spartan-ecdsa](https://github.com/personaelabs/spartan-ecdsa) is an open-source implementation for verifying ECDSA (secp256k1) signatures in zero-knowledge. It is significantly faster than previous implementations, such as efficient-zk-ecdsa, and can prove ECDSA group membership 10 times faster.
+
+The goal of Spartan-ECDSA was to create a fast and secure ECDSA with minimal constraints. To achieve this, the Circom circuits had to be carefully checked for inputs and outputs on the client side. Using the Circom circuits directly was not recommended unless the inputs and outputs were fully verified. The Spartan-ECDSA team advised the clients to use their typescript functions instead of the Circom circuits.
 
 The major improvement in Spartan-ecdsa comes from the optimization of constraint breakdown. By using right-field arithmetic with secq and avoiding SNARK-unfriendly range checks and big integer math, Spartan-ecdsa reduces the number of constraints from 1.5 million in circom-ecdsa to 3,039 for efficient ECDSA signature verification. Furthermore, it uses efficient ECDSA signatures instead of standard ECDSA signatures, saving an additional 14,505 constraints.
 
@@ -81,7 +84,7 @@ Some applications of Spartan-Ecdsa in anonymous decentralized networks include:
 4. **Distributed Ledger Technology:** In distributed ledger systems, efficient ECDSA with zero-knowledge proofs can be utilized to establish secure communication channels between nodes, allowing them to verify each other's transactions and maintain data privacy. This approach ensures data integrity and confidentiality while maintaining fast transaction processing.
 5. **Confidential Smart Contracts:** In smart contract platforms like Ethereum, combining efficient ECDSA with zero-knowledge proofs can enable confidential execution of smart contracts. This allows users to interact with smart contracts without revealing sensitive information, ensuring privacy and security while maintaining fast execution times.
 
-The Spartan ECDSA Circom circuits were reviewed over 10 days. The code review was performed between June 17 and June 26, 2023. The Spartan ECDSA repository was under active development during the review, but the review was limited to the latest commit, [3386b30](https://github.com/personaelabs/spartan-ecdsa/commit/3386b30d9b5b62d8a60735cbeab42bfe42e80429) at the start of the review. 
+The Spartan ECDSA Circom circuits were reviewed over 18 days. The code review was performed between June 17 and July 4 29, 2023. The Spartan ECDSA repository was under active development during the review, but the review was limited to the latest commit, [3386b30](https://github.com/personaelabs/spartan-ecdsa/commit/3386b30d9b5b62d8a60735cbeab42bfe42e80429) at the start of the review. 
 
 The official documentation for the Spartan ECDSA circuits was located at [personaelabs.org](https://personaelabs.org/posts/spartan-ecdsa/).
 
@@ -146,6 +149,12 @@ None.
 
 ## Low Findings
 
+## Informational Findings
+
+The below are for informational purpose only as the direct use of Circom circuits are not intended. The circuits are underconstrained can lead to citicial bigs if the circom circuits are directly used without completely constraining the inputs and outputs.
+
+**circuits/eff_ecdsa_membership/secp256k1/add.circom**
+
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:31:5
    │
@@ -183,9 +192,9 @@ warning: In signal assignments containing division, the divisor needs to be cons
    │
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unconstrained-division.
 
-circomspect: 5 issues found.
 
-circomspect ./eff_ecdsa_membership/secp256k1/mul.circom
+**circomspect ./eff_ecdsa_membership/secp256k1/mul.circom**
+
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
     ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom:124:5
     │
@@ -218,9 +227,6 @@ warning: Using `Num2Bits` to convert field elements to bits may lead to aliasing
     = Consider using `Num2Bits_strict` if the input size may be >= than the prime size.
     = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#non-strict-binary-conversion.
 
-circomspect: 4 issues found.
-
-eff_ecdsa_membership/secp256k1/mul.circom
 To improve error handling in the given Circom code, you can add assertions and constraints to check for invalid inputs and edge cases. Here are a few suggestions:
  1. Check if the input scalar is within the valid range:
  Add a constraint to ensure that the input scalar is within the valid range of the Secp256k1 elliptic curve. You can do this by adding an assertion to check if the scalar is less than the curve's order.
@@ -242,7 +248,8 @@ assert((isPointAtInfinity && outX === 0 && outY === 0) || (!isPointAtInfinity));
 These additional checks will help improve the error handling of the given Circom code by ensuring that the inputs are valid and handling edge cases properly.
 
 
-circomspect ./eff_ecdsa_membership/secp256k1/double.circom 
+**circuits/eff_ecdsa_membership/secp256k1/double.circom**
+
 circomspect: analyzing template 'Secp256k1Double'
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/double.circom:22:5
@@ -259,108 +266,15 @@ warning: In signal assignments containing division, the divisor needs to be cons
    │
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unconstrained-division.
 
-circomspect: 2 issues found.
 
-
-### 1. Low - Incosistency between RLN contract and RLN circuit on the number of bits for userMessageLimit
-
-In RLN.sol, the messageLimit can take upto 2**256 - 1 values whereas messageId & userMessageLimit values in circuits is restricted to 2**16 - 1 .
-
-[rln.circom](https://github.com/Rate-Limiting-Nullifier/circom-rln/blob/37073131b9c5910228ad6bdf0fc50080e507166a/circuits/rln.circom)
-
-```circom
-template RLN(DEPTH, LIMIT_BIT_SIZE) {
-...
-    // messageId range check
-    RangeCheck(LIMIT_BIT_SIZE)(messageId, userMessageLimit);
-...
-}
-component main { public [x, externalNullifier] } = RLN(20, 16);
-```
-
-[rln.sol](https://github.com/Rate-Limiting-Nullifier/rln-contracts/blob/main/src/RLN.sol)
-```solidity
-uint256 messageLimit = amount / MINIMAL_DEPOSIT;
-```
-
-**Recommended Solution**
-
-Update the relevant code at [rln.sol](https://github.com/Rate-Limiting-Nullifier/rln-contracts/blob/main/src/RLN.sol) with something like below:
-
-```solidity
-function register(uint256 identityCommitment, uint256 amount) external {
-        ...
-        uint256 messageLimit = amount / MINIMAL_DEPOSIT;
-        require( messageLimit <= type(uint16).max , "Max length of your message limit is 65535");
-        ...
-    }
-```
-
-### 2. Low - Unused `bits` variable in the eff_ecdsa circuit
-
-The variable `bits` in the file `/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/eff_ecdsa.circom` was declared but not used in the circuit calculation. 
-
-```circom
-    var bits = 256;
-```
-**Impact**
-
-For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unused-variable-or-parameter.
-
-
-**Recommended Solution**
-Remove unused variable `bits` from the circuit. 
-
-**Developer Response**
-
-### 3. Low - Missing rangechecks for the data inputs
-
-The Circom circuits are missing explicit rangechecks for several input parameters suchh as `DEPTH`, `address`, `LIMIT_BIT_SIZE`, etc. 
-
-**Recommended Solution**
-Perform explcit range checks and constrain the data input parameters to improve the soundness of the ZKP system.
-
-
-## Informational Findings
-The Circom circuits are further tested for `Weak Verification` soundness property using [Ecne tool](https://github.com/franklynwang/EcneProject) from 0xParc. This tests if, given the input variables in a QAP (R1CS constraints), the output variables have uniquely determined values. An underconstrained circuit admits valid proofs for multiple different outputs, given the same input. In the worst case, an attacker can generate a valid proof for an underconstrained circuit for any output--meaning that an attacker would be able to convince a verifier who (incorrectly) believes the circuit to be properly-constrained that the attacker knows the pre-image of arbitrary outputs.
-
-### Ecne Findings
-The Circom cuits were compiled to non-optimized R1CS constraints system and then they were tested for `Weak Verification` to check for any bad constraints or underconstraints. All the circuits passed the Ecne tests without any bad or underconstraints. This verifies that R1CS equations of the given circuits uniquely determine outputs given inputs (i.e. that the constraints are sound).
-
-### Error Handling
-Consider adding below error handling to check for specific conditions and throw an error or return an error code when those conditions are not met. This helps provide meaningful error messages or handle exceptional cases in a controlled manner.
-
-**`rln.circom`**
-```circom
-// Add error handling for Merkle tree inclusion proof
-root <== MerkleTreeInclusionProof(DEPTH)(rateCommitment, identityPathIndex, pathElements);
-assert(root !== 0, "Invalid Merkle tree inclusion proof"); // Throw an error if the Merkle tree inclusion proof is invalid
-
-```
-**`withdraw.circom`**
-```circom
-// Add error handling for address length check
-assert(address.length == EXPECTED_ADDRESS_LENGTH, "Invalid address length"); // Throw an error if the address length is not as expected
-
-```
-**`utils.circom`**
-```circom
-
-// Add error handling for length check
-assert(leaf.length == EXPECTED_LEAF_LENGTH, "Invalid leaf length"); // Throw an error if the leaf length is not as expected
-```
 ### `POSEIDON` and Some Additional Remarks
-- The RLN circuit assumes that the underlying hash function (`Poseidon`) is:
+- The Spartan-Ecdsa circuits assume that the underlying hash function (`Poseidon`) is:
     * Collision-resistant
     * Resistant to differential, algebraic, and interpolation attacks
     * Behaves as a random oracle
 - The Merkle tree used for membership proof is assumed to be secure against second-preimage attacks.
-- The security of the circuit depends on the security of the cryptographic primitives used for range checks and SSS share calculations.
-- The security of the circuit also depends on the secrecy of the `identitySecret` signal, which is assumed to be kept secret by the user.
 - Social engineering attacks are still a valid way to break the system.
-- An attacker can obtain the `identitySecret` signal of a user by using methods such as social engineering, phishing attacks, or exploiting vulnerabilities in the user's system.
-- Once the attacker has obtained the `identitySecret` signal, they can calculate the `identityCommitment`, `rateCommitment`, `a1`, and `y` signals for that user, and use them to break the security of the RLN circuit.
-
+- ECDSA has several nonce based attacks. It is very important that the client side confirguration doesn't leak any nonce data or any app metadata that can reduce the security of guessing nonce for the ECDSA.
 
 ## Final remarks
 Overall, the code demonstrates good implementation of mathematical operations and basic functionality. However, it could benefit from more extensive documentation and additional testing and verification procedures.
