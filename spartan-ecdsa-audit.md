@@ -286,7 +286,7 @@ warning: In signal assignments containing division, the divisor needs to be cons
 
 Someone can generate fake witnesses by randomly selecting $s1$, $T1$ and calculate $U1 = Pubkey - s1*T1$. The circuit doesn't check/verify $s1$, $T1$, and $U1$ constraints, it merely accepts and passes through the circuit. 
 
-There should be similar informational warnings to the client implementations for many edge cases like zero point, points at infinity, additions/multiplications with $p & $-p$, etc.
+There should be similar informational warnings to the client implementations for many edge cases like zero point, points at infinity, additions/multiplications with $p$ and $-p$, etc.
 
 
 ### `POSEIDON` and Some Additional Remarks
