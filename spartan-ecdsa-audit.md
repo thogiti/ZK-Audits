@@ -297,6 +297,8 @@ There should be similar informational warnings to the client implementations for
 - The Merkle tree used for membership proof is assumed to be secure against second-preimage attacks.
 - Social engineering attacks are still a valid way to break the system.
 - ECDSA has several nonce based attacks. It is very important that the client side confirguration doesn't leak any nonce data or any app metadata that can reduce the security of guessing nonce for the ECDSA.
+- Clarify the proper usage of each template, where assertions about the valuation of its inputs (pre-conditions) should be satisfied when calling the template.
+- Write a detailed check list of things to do on the client side. This can help the developers not make standard mistakes of not validating the inputs and outputs and there by resulting into underconstrained related critical bugs.
 
 ## Final remarks
 Overall, the code demonstrates good implementation of mathematical operations and basic functionality. However, it could benefit from more extensive documentation and additional testing and verification procedures.
