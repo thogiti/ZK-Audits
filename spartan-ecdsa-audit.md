@@ -289,7 +289,7 @@ Someone can generate fake witnesses by randomly selecting $s1$, $T1$ and calcula
 There should be similar informational warnings to the client implementations for many edge cases like zero point, points at infinity, additions/multiplications with $p$ and $-p$, etc.
 
 
-### `POSEIDON` and Some Additional Remarks
+### `eff_ecdsa`, `POSEIDON` and Some Additional Remarks
 - The Spartan-Ecdsa circuits assume that the underlying hash function (`Poseidon`) is:
     * Collision-resistant
     * Resistant to differential, algebraic, and interpolation attacks
