@@ -157,94 +157,109 @@ The below are for informational purpose only as the direct use of Circom circuit
 
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:31:5
-   │
+```circom
 31 │     lambda <-- dy / dx;
    │     ^^^^^^^^^^^^^^^^^^ The assigned signal `lambda` is not constrained here.
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: In signal assignments containing division, the divisor needs to be constrained to be non-zero
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:31:21
-   │
+```circom
 31 │     lambda <-- dy / dx;
    │                     ^^ The divisor `dx` must be constrained to be non-zero.
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unconstrained-division.
+```
 
 circomspect: analyzing template 'Secp256k1AddComplete'
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:75:5
-   │
+```circom
 75 │     signal lambdaA <-- ((yQ - yP) / dx) * (1 - isXEqual.out);
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The assigned signal `lambdaA` is not constrained here.
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:79:5
-   │
+```circom
 79 │     signal lambdaB <-- ((3 * xPSquared) / (2 * yP));
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The assigned signal `lambdaB` is not constrained here.
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: In signal assignments containing division, the divisor needs to be constrained to be non-zero
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/add.circom:79:44
-   │
+```circom
 79 │     signal lambdaB <-- ((3 * xPSquared) / (2 * yP));
    │                                            ^^^^^^ The divisor `(2 * yP)` must be constrained to be non-zero.
    │
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unconstrained-division.
-
+```
 
 **circomspect ./eff_ecdsa_membership/secp256k1/mul.circom**
 
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
     ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom:124:5
-    │
+```circom
 124 │     signal shi <-- s >> 128;
     │     ^^^^^^^^^^^^^^^^^^^^^^^ The assigned signal `shi` is not constrained here.
     = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
     ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom:123:5
-    │
+```circom
 123 │     signal slo <-- s & (2 ** (128) - 1);
     │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The assigned signal `slo` is not constrained here.
     = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: Using `Num2Bits` to convert field elements to bits may lead to aliasing issues.
     ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom:180:25
-    │
+```circom
 180 │     component kloBits = Num2Bits(256);
     │                         ^^^^^^^^^^^^^ Circomlib template `Num2Bits` instantiated here.
     │
     = Consider using `Num2Bits_strict` if the input size may be >= than the prime size.
     = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#non-strict-binary-conversion.
+```
 
 warning: Using `Num2Bits` to convert field elements to bits may lead to aliasing issues.
     ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/mul.circom:183:25
-    │
+```circom
 183 │     component khiBits = Num2Bits(256);
     │                         ^^^^^^^^^^^^^ Circomlib template `Num2Bits` instantiated here.
     │
     = Consider using `Num2Bits_strict` if the input size may be >= than the prime size.
     = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#non-strict-binary-conversion.
+```
 
 To improve error handling in the given Circom code, you can add assertions and constraints to check for invalid inputs and edge cases. Here are a few suggestions:
  1. Check if the input scalar is within the valid range:
  Add a constraint to ensure that the input scalar is within the valid range of the Secp256k1 elliptic curve. You can do this by adding an assertion to check if the scalar is less than the curve's order.
+```circom
 // Add this line after the signal input scalar declaration
 assert(scalar < 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141);
+```
 
 2. Check if the input point is on the curve:
- Add a constraint to ensure that the input point (xP, yP) lies on the Secp256k1 curve. You can do this by checking the curve equation: y^2 = x^3 + 7.
+ Add a constraint to ensure that the input point $(xP, yP)$ lies on the Secp256k1 curve. You can do this by checking the curve equation: $y^2 = x^3 + 7$.
+```circom
 // Add these lines after the signal input xP and yP declarations
 var a = 0;
 var b = 7;
 assert(yP * yP === xP * xP * xP + a * xP + b);
+```
 
 3. Check for edge cases:
  For the edge cases where the input point is the point at infinity or the scalar is zero, the output point should also be the point at infinity. You can add an assertion to check for these cases.
+```circom
 // Add these lines after the outX and outY signal output declarations
+
 var isPointAtInfinity = (xP === 0 && yP === 0) || scalar === 0;
 assert((isPointAtInfinity && outX === 0 && outY === 0) || (!isPointAtInfinity));
+```
 These additional checks will help improve the error handling of the given Circom code by ensuring that the inputs are valid and handling edge cases properly.
 
 
@@ -253,18 +268,25 @@ These additional checks will help improve the error handling of the given Circom
 circomspect: analyzing template 'Secp256k1Double'
 warning: Using the signal assignment operator `<--` does not constrain the assigned signal.
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/double.circom:22:5
-   │
+```circom
 22 │     lambda <-- (3 * xPSquared) / (2 * yP);
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The assigned signal `lambda` is not constrained here.
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#signal-assignment.
+```
 
 warning: In signal assignments containing division, the divisor needs to be constrained to be non-zero
    ┌─ /Users/nagumba/Documents/Projects/yacademy/spartan-ecdsa/packages/circuits/eff_ecdsa_membership/secp256k1/double.circom:22:35
-   │
+```circom
 22 │     lambda <-- (3 * xPSquared) / (2 * yP);
    │                                   ^^^^^^ The divisor `(2 * yP)` must be constrained to be non-zero.
    │
    = For more details, see https://github.com/trailofbits/circomspect/blob/main/doc/analysis_passes.md#unconstrained-division.
+```
+**circuits/eff_ecdsa_membership/eff_ecdsa.circom**
+
+Someone can generate fake witnesses by randomly selecting $s1$, $T1$ and calculate $U1 = Pubkey - s1*T1$. The circuit doesn't check/verify $s1$, $T1$, and $U1$ constraints, it merely accepts and passes through the circuit. 
+
+There should be similar informational warnings to the client implementations for many edge cases like zero point, points at infinity, additions/multiplications with $p & $-p$, etc.
 
 
 ### `POSEIDON` and Some Additional Remarks
